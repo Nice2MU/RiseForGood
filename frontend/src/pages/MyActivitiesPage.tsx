@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { fetchMyActivities } from "../features/activities/activitiesSlice";
+import { fetchMyActivities, cancelEnrollment } from "../features/activities/activitiesSlice";
 import { fetchMessages, sendMessage, clearChat } from "../features/chat/chatSlice";
 
 const MyActivitiesPage = () => {
@@ -14,6 +14,7 @@ const MyActivitiesPage = () => {
   const { user } = useAppSelector((s) => s.auth);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [text, setText] = useState("");
+  const [canceling, setCanceling] = useState(false);
 
   useEffect(() => {
     dispatch(fetchMyActivities());
@@ -33,6 +34,16 @@ const MyActivitiesPage = () => {
     if (!selectedId || !text.trim()) return;
     dispatch(sendMessage({ activityId: selectedId, text: text.trim() }));
     setText("");
+  };
+
+  const handleCancel = async () => {
+    if (!selectedId) return;
+    if (!confirm("คุณต้องการยกเลิกการสมัครกิจกรรมนี้หรือไม่?")) return;
+    
+    setCanceling(true);
+    await dispatch(cancelEnrollment(selectedId));
+    setCanceling(false);
+    setSelectedId(null);
   };
 
   if (!user) {
@@ -137,6 +148,15 @@ const MyActivitiesPage = () => {
                   {selectedActivity.date} • {selectedActivity.time} •{" "}
                   {selectedActivity.location} ({selectedActivity.province})
                 </p>
+              </div>
+              <div className="mb-2">
+                <button
+                  className="btn btn-error btn-sm w-full"
+                  onClick={handleCancel}
+                  disabled={canceling}
+                >
+                  {canceling ? "กำลังยกเลิก..." : "ยกเลิกการสมัคร"}
+                </button>
               </div>
               {chatError && (
                 <div className="alert alert-error py-1 text-[11px] mb-2">

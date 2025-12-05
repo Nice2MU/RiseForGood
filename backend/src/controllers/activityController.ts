@@ -90,7 +90,8 @@ export const enrollToActivity = async (req: Request, res: Response) => {
 
     const existing = await Enrollment.findOne({
       user: req.user.id,
-      activity: activity._id
+      activity: activity._id,
+      status: "enrolled"
     });
     if (existing) {
       return res.status(400).json({ message: "คุณสมัครกิจกรรมนี้แล้ว" });
@@ -100,9 +101,17 @@ export const enrollToActivity = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "จำนวนอาสาเต็มแล้ว" });
     }
 
+    // ถ้ามี enrollment เก่าที่ยกเลิก ให้ลบและสร้างใหม่
+    await Enrollment.deleteMany({
+      user: req.user.id,
+      activity: activity._id,
+      status: "cancelled"
+    });
+
     await Enrollment.create({
       user: req.user.id,
-      activity: activity._id
+      activity: activity._id,
+      status: "enrolled"
     });
 
     activity.currentVolunteers += 1;
@@ -115,12 +124,51 @@ export const enrollToActivity = async (req: Request, res: Response) => {
   }
 };
 
+export const cancelEnrollment = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authorized" });
+    }
+
+    const activityId = req.params.id;
+    const enrollment = await Enrollment.findOne({
+      user: req.user.id,
+      activity: activityId
+    });
+
+    if (!enrollment) {
+      return res.status(404).json({ message: "ไม่พบการสมัครนี้" });
+    }
+
+    if (enrollment.status === "cancelled") {
+      return res.status(400).json({ message: "ยกเลิกการสมัครแล้ว" });
+    }
+
+    enrollment.status = "cancelled";
+    await enrollment.save();
+
+    const activity = await Activity.findById(activityId);
+    if (activity && activity.currentVolunteers > 0) {
+      activity.currentVolunteers -= 1;
+      await activity.save();
+    }
+
+    res.json({ message: "ยกเลิกการสมัครสำเร็จ" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "ไม่สามารถยกเลิกการสมัครได้" });
+  }
+};
+
 export const getMyActivities = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ message: "Not authorized" });
     }
-    const enrollments = await Enrollment.find({ user: req.user.id }).populate("activity");
+    const enrollments = await Enrollment.find({ 
+      user: req.user.id,
+      status: { $ne: "cancelled" }
+    }).populate("activity");
     const activities = enrollments
       .map((e: any) => e.activity)
       .filter((a: any) => !!a);

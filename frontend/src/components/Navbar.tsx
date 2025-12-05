@@ -32,6 +32,9 @@ const Navbar = () => {
           <li>
             <NavLink to="/activities">งานอาสา</NavLink>
           </li>
+          <li>
+            <NavLink to="/calendar">📅 ปฏิทิน</NavLink>
+          </li>
           {user && (
             <li>
               <NavLink to="/my-activities">กิจกรรมของฉัน</NavLink>

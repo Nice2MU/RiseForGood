@@ -5,6 +5,7 @@ import AboutPage from "./pages/AboutPage";
 import ActivitiesListPage from "./pages/ActivitiesListPage";
 import ActivityDetailPage from "./pages/ActivityDetailPage";
 import MyActivitiesPage from "./pages/MyActivitiesPage";
+import ActivityCalendarPage from "./pages/ActivityCalendarPage";
 import AdminActivitiesPage from "./pages/AdminActivitiesPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/activities" element={<ActivitiesListPage />} />
         <Route path="/activities/:id" element={<ActivityDetailPage />} />
+        <Route path="/calendar" element={<ActivityCalendarPage />} />
         <Route
           path="/my-activities"
           element={

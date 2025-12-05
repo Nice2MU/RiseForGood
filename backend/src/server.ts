@@ -7,6 +7,7 @@ import fs from "fs";
 import { connectDB } from "./config/db";
 import activityRoutes from "./routes/activityRoutes";
 import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ app.post("/api/upload", upload.single("image"), (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/activities", activityRoutes);
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/riseforgood";

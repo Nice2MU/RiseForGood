@@ -77,6 +77,18 @@ export const enrollInActivity = createAsyncThunk(
   }
 );
 
+export const cancelEnrollment = createAsyncThunk(
+  "activities/cancelEnrollment",
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await api.post(`/activities/${id}/cancel`);
+      return id;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data?.message || "ยกเลิกการสมัครไม่สำเร็จ");
+    }
+  }
+);
+
 export const fetchMyActivities = createAsyncThunk(
   "activities/fetchMyActivities",
   async (_, { rejectWithValue }) => {
@@ -172,6 +184,13 @@ const activitiesSlice = createSlice({
       .addCase(enrollInActivity.rejected, (state, action) => {
         state.enrolling = false;
         state.enrollError = (action.payload as string) || "สมัครกิจกรรมไม่สำเร็จ";
+      })
+      .addCase(cancelEnrollment.fulfilled, (state, action: PayloadAction<string>) => {
+        const activityId = action.payload;
+        state.myActivities = state.myActivities.filter((a) => a._id !== activityId);
+      })
+      .addCase(cancelEnrollment.rejected, (state, action) => {
+        state.enrollError = (action.payload as string) || "ยกเลิกการสมัครไม่สำเร็จ";
       })
       .addCase(fetchMyActivities.pending, (state) => {
         state.myLoading = true;
